@@ -374,13 +374,14 @@
   }
   .radio-card input:checked + span{border-color:var(--green);background:var(--amber-soft);box-shadow:inset 0 0 0 1.5px var(--green)}
   .radio-card input:focus-visible + span{outline:3px solid rgba(225,154,31,.5)}
-  .total-line{
-    display:flex;justify-content:space-between;align-items:center;
+  .price-box{
     background:var(--bg-soft);border-radius:10px;padding:12px 16px;font-weight:800;
   }
-  .total-line b{font-size:1.3rem;color:var(--green-deep)}
-  @media (prefers-color-scheme: dark){.total-line b{color:var(--amber)}}
-  .total-line small{display:block;font-weight:600;color:var(--ink-soft);font-size:.85rem}
+  .price-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+  .price-row small{font-weight:600;color:var(--ink-soft);font-size:.85rem}
+  .price-row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+  .price-row.total b{font-size:1.3rem;color:var(--green-deep)}
+  @media (prefers-color-scheme: dark){.price-row.total b{color:var(--amber)}}
   .submit-btn{width:100%;font-size:1.2rem;padding:14px}
   .msg-preview{display:none;margin-top:18px}
   .msg-preview.show{display:block}
@@ -410,6 +411,13 @@
   .sticky .p small{display:block;font-size:.8rem;font-weight:700;color:var(--ink-soft)}
   .sticky .btn{flex-shrink:0}
   @media (min-width:860px){.sticky{display:none} body{padding-bottom:0}}
+
+  .desk-warn{
+    display:none;margin:10px 0 0;background:#fbe9e4;color:var(--red);
+    border:1px solid #e5b8ae;border-radius:10px;padding:10px 14px;font-weight:700;
+  }
+  @media (prefers-color-scheme: dark){.desk-warn{background:#3d201a}}
+  .desk-warn.show{display:block}
 </style>
 </head>
 <body>
@@ -691,7 +699,8 @@
   </section>
 
   <!-- ORDER -->
-  <section id="order" aria-labelledby="order-h">
+  
+<section id="order" aria-labelledby="order-h">
     <div class="order-box">
       <h2 id="order-h">اطلب مجموعتك الآن</h2>
       <p class="lead">عمّر المعلومات، واضغط الزر — الرسالة تتجهز وحدها وتتبعث في مسنجر صفحة <b>مكتبة الجيل الجديد</b>، ومن بعد <b>نعيطولك في الهاتف باش نأكدوا الطلب</b> قبل ما يخرج.</p>
@@ -735,10 +744,12 @@
             </label>
           </div>
         </fieldset>
-        <div class="total-line">
-          <span>المجموع<small>سعر التوصيل يتأكد في المحادثة حسب الولاية</small></span>
-          <b>2000 دج</b>
+        <div class="price-box">
+          <div class="price-row"><span>سعر البطاقات</span><b>2000 دج</b></div>
+          <div class="price-row"><span>سعر التوصيل <small id="deliveryTypeLabel"></small></span><b id="deliveryFee">اختر الولاية</b></div>
+          <div class="price-row total"><span>المجموع</span><b id="totalAmount">2000 دج</b></div>
         </div>
+        <div class="desk-warn" id="deskWarn">لا يوجد مكتب في هذه الولاية — التوصيل للدار فقط.</div>
         <div class="guarantee"><span class="shield">✓</span><span>الدفع عند الاستلام — ما تدفع والو حتى توصلك البطاقات.<small>نعيطولك قبل الإرسال باش نأكدوا الطلب، وتخلّص كي تستلم.</small></span></div>
         <button type="submit" class="btn btn-main submit-btn">ابعث الطلب في مسنجر</button>
         <p class="note">بالضغط على الزر، تتفتح محادثة مسنجر تاع الصفحة والرسالة تتنسخ وحدها — الصقها وابعثها برك.</p>
@@ -801,6 +812,119 @@
     sel.appendChild(o);
   });
 
+  /* Delivery prices (Salvadelivery) */
+  var form = document.getElementById("orderForm");
+  var deliveryPrices = {
+    "01 - أدرار": {home:1300, desk:750, ret:200},
+    "02 - الشلف": {home:800, desk:400, ret:200},
+    "03 - الأغواط": {home:900, desk:550, ret:200},
+    "04 - أم البواقي": {home:800, desk:400, ret:200},
+    "05 - باتنة": {home:800, desk:400, ret:200},
+    "06 - بجاية": {home:800, desk:0, ret:200},
+    "07 - بسكرة": {home:900, desk:500, ret:200},
+    "08 - بشار": {home:1000, desk:600, ret:200},
+    "09 - البليدة": {home:550, desk:350, ret:200},
+    "10 - البويرة": {home:700, desk:400, ret:200},
+    "11 - تمنراست": {home:1700, desk:900, ret:200},
+    "12 - تبسة": {home:850, desk:400, ret:200},
+    "13 - تلمسان": {home:800, desk:400, ret:200},
+    "14 - تيارت": {home:800, desk:400, ret:200},
+    "15 - تيزي وزو": {home:700, desk:350, ret:200},
+    "16 - الجزائر": {home:400, desk:200, ret:0},
+    "17 - الجلفة": {home:900, desk:550, ret:200},
+    "18 - جيجل": {home:800, desk:400, ret:200},
+    "19 - سطيف": {home:800, desk:400, ret:200},
+    "20 - سعيدة": {home:800, desk:400, ret:200},
+    "21 - سكيكدة": {home:800, desk:400, ret:200},
+    "22 - سيدي بلعباس": {home:800, desk:400, ret:200},
+    "23 - عنابة": {home:800, desk:400, ret:200},
+    "24 - قالمة": {home:850, desk:400, ret:200},
+    "25 - قسنطينة": {home:800, desk:400, ret:200},
+    "26 - المدية": {home:750, desk:400, ret:200},
+    "27 - مستغانم": {home:800, desk:400, ret:200},
+    "28 - المسيلة": {home:800, desk:400, ret:200},
+    "29 - معسكر": {home:800, desk:400, ret:200},
+    "30 - ورقلة": {home:1000, desk:550, ret:200},
+    "31 - وهران": {home:800, desk:400, ret:200},
+    "32 - البيض": {home:1000, desk:0, ret:200},
+    "33 - إليزي": {home:1900, desk:0, ret:300},
+    "34 - برج بوعريريج": {home:800, desk:400, ret:200},
+    "35 - بومرداس": {home:550, desk:350, ret:200},
+    "36 - الطارف": {home:850, desk:0, ret:200},
+    "37 - تندوف": {home:1400, desk:0, ret:300},
+    "38 - تيسمسيلت": {home:800, desk:500, ret:200},
+    "39 - الوادي": {home:1000, desk:0, ret:200},
+    "40 - خنشلة": {home:850, desk:400, ret:200},
+    "41 - سوق أهراس": {home:800, desk:0, ret:200},
+    "42 - تيبازة": {home:550, desk:350, ret:200},
+    "43 - ميلة": {home:800, desk:0, ret:200},
+    "44 - عين الدفلى": {home:800, desk:400, ret:200},
+    "45 - النعامة": {home:1000, desk:600, ret:200},
+    "46 - عين تموشنت": {home:800, desk:400, ret:200},
+    "47 - غرداية": {home:950, desk:550, ret:200},
+    "48 - غليزان": {home:800, desk:500, ret:200},
+    "51 - أولاد جلال": {home:900, desk:0, ret:200},
+    "52 - بني عباس": {home:1100, desk:0, ret:200},
+    "53 - عين صالح": {home:1800, desk:0, ret:300},
+    "55 - تقرت": {home:1000, desk:550, ret:200},
+    "57 - المغير": {home:1000, desk:0, ret:200},
+    "58 - المنيعة": {home:950, desk:0, ret:200}
+  };
+
+  var deliveryFee = document.getElementById("deliveryFee");
+  var deliveryTypeLabel = document.getElementById("deliveryTypeLabel");
+  var totalAmount = document.getElementById("totalAmount");
+  var deskWarn = document.getElementById("deskWarn");
+  var PRICE = 2000;
+
+  function deliveryInfo(){
+    var w = sel.value;
+    var p = deliveryPrices[w];
+    if (!w || !p) return null;
+    var delivery = form.querySelector('input[name="delivery"]:checked');
+    var type = delivery ? delivery.value : "مكتب";
+    if (type === "مكتب" && p.desk === 0) type = "دار";
+    var fee = type === "دار" ? p.home : p.desk;
+    return {type: type, fee: fee, total: PRICE + fee, ret: p.ret};
+  }
+
+  function updateTotal(){
+    var w = sel.value;
+    if (!w) {
+      deliveryFee.textContent = "اختر الولاية";
+      deliveryTypeLabel.textContent = "";
+      totalAmount.textContent = PRICE + " دج";
+      deskWarn.classList.remove("show");
+      return;
+    }
+    var p = deliveryPrices[w];
+    if (!p) {
+      deliveryFee.textContent = "يتأكد في مسنجر";
+      deliveryTypeLabel.textContent = "";
+      totalAmount.textContent = PRICE + " دج";
+      deskWarn.classList.remove("show");
+      return;
+    }
+    var delivery = form.querySelector('input[name="delivery"]:checked');
+    var type = delivery ? delivery.value : "مكتب";
+    if (type === "مكتب" && p.desk === 0) {
+      var homeRadio = form.querySelector('input[name="delivery"][value="دار"]');
+      if (homeRadio) homeRadio.checked = true;
+      type = "دار";
+      deskWarn.classList.add("show");
+    } else {
+      deskWarn.classList.remove("show");
+    }
+    var fee = type === "دار" ? p.home : p.desk;
+    deliveryTypeLabel.textContent = type === "دار" ? "(للدار)" : "(للمكتب)";
+    deliveryFee.textContent = fee + " دج";
+    totalAmount.textContent = (PRICE + fee) + " دج";
+  }
+
+  sel.addEventListener("change", updateTotal);
+  var radios = form.querySelectorAll('input[name="delivery"]');
+  for (var ri = 0; ri < radios.length; ri++) radios[ri].addEventListener("change", updateTotal);
+
   /* Order form */
   var form = document.getElementById("orderForm");
   var MESSENGER = "https://m.me/1436952559503848";
@@ -838,7 +962,9 @@
       "الهاتف: " + phoneClean + "\n" +
       "الولاية: " + sel.value + "\n" +
       "البلدية: " + commune.value.trim() + "\n" +
-      "التوصيل: " + (delivery ? delivery.value : "مكتب");
+      "التوصيل: " + (deliveryInfo() ? deliveryInfo().type : (delivery ? delivery.value : "مكتب")) + "\n" +
+      "سعر التوصيل: " + (deliveryInfo() ? deliveryInfo().fee + " دج" : "يتأكد في المحادثة") + "\n" +
+      "المجموع: " + (deliveryInfo() ? deliveryInfo().total + " دج" : "2000 دج");
 
     var preview = document.getElementById("msgPreview");
     document.getElementById("msgText").textContent = lastMessage;
