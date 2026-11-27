@@ -390,7 +390,7 @@
   .shop-header nav{display:flex;gap:16px}
   .shop-header nav a{color:var(--ink-soft);text-decoration:none;font-weight:700;font-size:.95rem}
   .shop-header nav a:hover{color:var(--ink)}
-  @media (max-width:640px){.shop-header nav{display:none}}
+  @media (max-width:640px){.shop-header-in{flex-wrap:wrap}.shop-header nav{order:3;flex-basis:100%;justify-content:flex-start;gap:12px;padding-bottom:2px}.shop-header nav a{font-size:.9rem}}
   .store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:18px}
   .product-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden;display:flex;flex-direction:column}
   .product-card img{width:100%;height:190px;object-fit:cover;display:block}
@@ -720,7 +720,7 @@
         <li>التوصيل لكل الولايات الـ58</li>
         <li>الدفع عند الاستلام — ما تخلّص حتى توصلك البطاقات</li>
         <li>تختار: توصيل للمكتب ولا للدار</li>
-        <li>اطلب من النموذج لتحت ولا مباشرة في مسنجر</li>
+        <li>اطلب من النموذج لتحت، وطلبك يوصلنا مباشرة</li>
         <li>نعيطولك في الهاتف ونأكدوا معاك الطلب قبل الإرسال</li>
       </ul>
     </div>
@@ -728,7 +728,7 @@
 
   <!-- FAQ -->
   <section aria-labelledby="faq-h">
-    <h2 id="faq-h">أسئلة تتكرر</h2>
+    <h2 id="faq-h">الأسئلة الشائعة</h2>
     <div class="faq">
       <details>
         <summary>واش فيها المجموعة بالضبط؟</summary>
@@ -736,7 +736,7 @@
       </details>
       <details>
         <summary>كيفاش نطلب؟</summary>
-        <p>عمّر النموذج لتحت (الاسم، الهاتف، الولاية — وزيد البلدية ونوع التوصيل) واضغط «ابعث الطلب» — تتكوّن لك رسالة جاهزة وتتفتح محادثة مسنجر تاع صفحة مكتبة الجيل الجديد، الصق الرسالة وابعثها. ولا ابعث كلمة «مهتم» مباشرة في مسنجر الصفحة. ومن بعد نعيطولك في الهاتف باش نأكدوا معاك الطلب قبل ما يخرج.</p>
+        <p>عمّر النموذج لتحت (الاسم، الهاتف، الولاية — وزيد البلدية ونوع التوصيل) واضغط «ابعث الطلب» — طلبك يوصلنا مباشرة، ونعيطولك في الهاتف باش نأكدوا معاك الطلب قبل ما يخرج. ولا ابعث كلمة «مهتم» مباشرة في مسنجر الصفحة.</p>
       </details>
       <details>
         <summary>توصلوا لولايتي؟ وقداش سعر التوصيل؟</summary>
@@ -801,7 +801,7 @@
 <section id="order" aria-labelledby="order-h">
     <div class="order-box">
       <h2 id="order-h">أكمل طلبك</h2>
-      <p class="lead">عمّر المعلومات، واضغط الزر — الرسالة تتجهز وحدها وتتبعث في مسنجر صفحة <b>مكتبة الجيل الجديد</b>، ومن بعد <b>نعيطولك في الهاتف باش نأكدوا الطلب</b> قبل ما يخرج.</p>
+      <p class="lead">عمّر المعلومات، واضغط الزر — طلبك يتبعث مباشرة، ومن بعد <b>نعيطولك في الهاتف باش نأكدوا الطلب</b> قبل ما يخرج.</p>
       <form id="orderForm" novalidate>
         <div class="two">
           <div>
@@ -850,18 +850,14 @@
         </div>
         <div class="desk-warn" id="deskWarn">لا يوجد مكتب في هذه الولاية — التوصيل للدار فقط.</div>
         <div class="guarantee"><span class="shield">✓</span><span>الدفع عند الاستلام — ما تدفع والو حتى توصلك البطاقات.<small>نعيطولك قبل الإرسال باش نأكدوا الطلب، وتخلّص كي تستلم.</small></span></div>
-        <button type="submit" class="btn btn-main submit-btn">ابعث الطلب في مسنجر</button>
-        <p class="note">بالضغط على الزر، تتفتح محادثة مسنجر تاع الصفحة والرسالة تتنسخ وحدها — الصقها وابعثها برك.</p>
+        <button type="submit" class="btn btn-main submit-btn">ابعث الطلب</button>
+        <p class="note">طلبك يتبعث مباشرة، ونتصلو بيك للتأكيد.</p>
       </form>
 
-      <div class="msg-preview" id="msgPreview" aria-live="polite">
-        <p style="font-weight:800;margin:0 0 8px">رسالتك جاهزة — إذا ما تلصقتش وحدها، انسخها والصقها في المحادثة:</p>
-        <pre id="msgText"></pre>
-        <div class="msg-actions">
-          <button type="button" class="btn btn-ghost" id="copyBtn">انسخ الرسالة</button>
-          <a class="btn btn-main" href="https://m.me/1436952559503848" target="_blank" rel="noopener">افتح مسنجر</a>
-        </div>
+      <div class="msg-preview" id="orderSuccess" aria-live="polite">
+        <p style="font-weight:800;margin:0">تم استلام طلبك ✓ راح نتصلو بيك قريب للتأكيد.</p>
       </div>
+      <p class="field-error" id="orderError">صار مشكل في إرسال الطلب — عاود المحاولة، أو راسلنا في مسنجر.</p>
     </div>
   </section>
 
@@ -1028,7 +1024,7 @@
     }
     var p = deliveryPrices[w];
     if (!p) {
-      deliveryFee.textContent = "يتأكد في مسنجر";
+      deliveryFee.textContent = "يتأكد في المكالمة";
       deliveryTypeLabel.textContent = "";
       totalAmount.textContent = sub + " دج";
       deskWarn.classList.remove("show");
@@ -1054,9 +1050,9 @@
   var radios = form.querySelectorAll('input[name="delivery"]');
   for (var ri = 0; ri < radios.length; ri++) radios[ri].addEventListener("change", updateTotal);
 
-  /* Order form */
+  /* Order form -> Worker (jeel-orders) */
+  var ORDER_ENDPOINT = "https://jeel-orders.apricitya4.workers.dev"; /* TODO: real Worker URL from the Cloudflare dashboard */
   var form = document.getElementById("orderForm");
-  var MESSENGER = "https://m.me/1436952559503848";
 
   function setErr(input, errEl, bad){
     if (bad) { input.classList.add("invalid"); errEl.classList.add("show"); }
@@ -1064,10 +1060,10 @@
     return !bad;
   }
 
-  var lastMessage = "";
-
   form.addEventListener("submit", function(e){
     e.preventDefault();
+    var errBox = document.getElementById("orderError");
+    if (errBox) errBox.classList.remove("show");
     var name = document.getElementById("fName");
     var phone = document.getElementById("fPhone");
     var commune = document.getElementById("fCommune");
@@ -1085,48 +1081,43 @@
       return;
     }
 
-    var lines = cartLines();
-    lastMessage =
-      "سلام، حاب نطلب من متجر مكتبة الجيل الجديد:\n" +
-      lines.join("\n") + "\n" +
-      "الاسم: " + name.value.trim() + "\n" +
-      "الهاتف: " + phoneClean + "\n" +
-      "الولاية: " + sel.value + "\n" +
-      "البلدية: " + commune.value.trim() + "\n" +
-      "التوصيل: " + (deliveryInfo() ? deliveryInfo().type : (delivery ? delivery.value : "مكتب")) + "\n" +
-      "سعر التوصيل: " + (deliveryInfo() ? deliveryInfo().fee + " دج" : "يتأكد في المحادثة") + "\n" +
-      "المجموع: " + (deliveryInfo() ? deliveryInfo().total + " دج" : (cartSubtotal() + " دج"));
+    var info = deliveryInfo();
+    var payload = {
+      name: name.value.trim(),
+      phone: phoneClean,
+      wilaya: sel.value,
+      commune: commune.value.trim(),
+      delivery: info ? info.type : (delivery ? delivery.value : "مكتب"),
+      items: cartLines(),
+      deliveryFee: info ? info.fee : null,
+      total: info ? info.total : cartSubtotal()
+    };
 
-    var preview = document.getElementById("msgPreview");
-    document.getElementById("msgText").textContent = lastMessage;
-    preview.classList.add("show");
+    var btn = form.querySelector(".submit-btn");
+    btn.disabled = true;
+    btn.textContent = "جاري إرسال الطلب...";
 
-    function openMessenger(){ window.open(MESSENGER, "_blank", "noopener"); }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(lastMessage).then(openMessenger, openMessenger);
-    } else {
-      openMessenger();
+    function fail(){
+      btn.disabled = false;
+      btn.textContent = "ابعث الطلب";
+      if (errBox) errBox.classList.add("show");
     }
-    preview.scrollIntoView({behavior:"smooth", block:"center"});
-  });
 
-  document.getElementById("copyBtn").addEventListener("click", function(){
-    var btn = this;
-    function done(){
-      btn.textContent = "تم النسخ ✓";
-      setTimeout(function(){ btn.textContent = "انسخ الرسالة"; }, 2200);
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(lastMessage).then(done, done);
-    } else {
-      var ta = document.createElement("textarea");
-      ta.value = lastMessage;
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand("copy"); } catch (err) {}
-      document.body.removeChild(ta);
-      done();
-    }
+    if (!ORDER_ENDPOINT || ORDER_ENDPOINT.indexOf("__WORKERS_SUBDOMAIN__") !== -1) { fail(); return; }
+
+    fetch(ORDER_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(function(res){ return res.json(); }).then(function(out){
+      if (!out || !out.ok) { throw new Error("send failed"); }
+      form.style.display = "none";
+      var done = document.getElementById("orderSuccess");
+      if (done) {
+        done.classList.add("show");
+        done.scrollIntoView({behavior:"smooth", block:"center"});
+      }
+    }).catch(fail);
   });
 
   /* ---------- Store: products, routing, cart ---------- */
