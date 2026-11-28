@@ -47,15 +47,19 @@
     </div>
     <a href="/">← المتجر</a>
   </header>
+
+  <!-- LOGIN -->
   <div class="card" id="loginCard">
     <h2>تسجيل الدخول</h2>
     <label>اسم المستخدم</label>
-    <input id="loginUser" value="admin" autocomplete="username">
+    <input id="loginUser" value="jeel-admin" autocomplete="username">
     <label>كلمة السر</label>
     <input id="loginPass" type="password" autocomplete="current-password">
     <div class="msg err" id="loginErr">بيانات الدخول غير صحيحة.</div>
     <div style="margin-top:14px"><button class="btn" id="loginBtn" type="button">دخول</button></div>
   </div>
+
+  <!-- DASHBOARD -->
   <div id="dash" class="hidden">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <b>مرحبا، أنت مسجلة كمديرة للمتجر</b>
@@ -63,6 +67,7 @@
     </div>
     <div class="msg ok" id="okMsg"></div>
     <div class="msg err" id="errMsg"></div>
+
     <div class="card">
       <h2>وصف المتجر</h2>
       <label>اسم المتجر</label>
@@ -71,10 +76,12 @@
       <textarea id="setDesc"></textarea>
       <div style="margin-top:14px"><button class="btn" id="saveSettingsBtn" type="button">حفظ الوصف</button></div>
     </div>
+
     <div class="card">
       <h2>المنتجات</h2>
       <div id="prodList"><p class="hint">جاري التحميل…</p></div>
     </div>
+
     <div class="card">
       <h2 id="formTitle">إضافة منتج جديد</h2>
       <input type="hidden" id="fId">
@@ -96,18 +103,22 @@
     </div>
   </div>
 </div>
+
 <script>
 var API = "https://jeel-orders.apricitya4.workers.dev";
 var FLAGSHIP_ID = "flashcards-bac-complet";
 var key = sessionStorage.getItem("jeel-admin-key") || "";
+
 function show(el, on){ el.classList.toggle("hidden", !on); }
 function okMsg(t){ var m=document.getElementById("okMsg"); m.textContent=t; m.classList.add("show"); setTimeout(function(){m.classList.remove("show")},4000); }
 function errMsg(t){ var m=document.getElementById("errMsg"); m.textContent=t; m.classList.add("show"); }
 function headers(){ return {"Content-Type":"application/json","X-Admin-Key":key}; }
+
 function slug(s){
   s = (s||"").trim().replace(/\s+/g,"-");
   return "p-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,6);
 }
+
 async function loadAll(){
   var r = await fetch(API + "/admin/products", {headers: headers()});
   if (!r.ok) throw new Error("products");
@@ -116,6 +127,7 @@ async function loadAll(){
   var r2 = await fetch(API + "/settings");
   if (r2.ok){ var s = await r2.json(); if (s.settings){ document.getElementById("setName").value = s.settings.name || ""; document.getElementById("setDesc").value = s.settings.description || ""; } }
 }
+
 function renderProducts(list){
   var box = document.getElementById("prodList");
   box.innerHTML = "";
@@ -142,6 +154,7 @@ function renderProducts(list){
     box.appendChild(div);
   });
 }
+
 function editProduct(p){
   document.getElementById("formTitle").textContent = "تعديل منتج";
   document.getElementById("fId").value = p.id;
@@ -153,11 +166,13 @@ function editProduct(p){
   document.getElementById("flagNote").style.display = p.id === FLAGSHIP_ID ? "" : "none";
   document.getElementById("formTitle").scrollIntoView({behavior:"smooth", block:"center"});
 }
+
 function resetForm(){
   document.getElementById("formTitle").textContent = "إضافة منتج جديد";
   ["fId","fName","fPrice","fBadge","fShort","fPoints"].forEach(function(id){ document.getElementById(id).value = ""; });
   document.getElementById("flagNote").style.display = "none";
 }
+
 async function saveProduct(){
   var name = document.getElementById("fName").value.trim();
   var price = Number(document.getElementById("fPrice").value);
@@ -178,6 +193,7 @@ async function saveProduct(){
   resetForm();
   okMsg("تحفظ المنتج وظهر في المتجر.");
 }
+
 async function deleteProduct(id){
   var r = await fetch(API + "/admin/products?id=" + encodeURIComponent(id), {method:"DELETE", headers: headers()});
   if (!r.ok){ errMsg("ما تحذفش المنتج."); return; }
@@ -185,12 +201,14 @@ async function deleteProduct(id){
   renderProducts(d.products || []);
   okMsg("تحذف المنتج.");
 }
+
 async function saveSettings(){
   var settings = {name: document.getElementById("setName").value.trim(), description: document.getElementById("setDesc").value.trim()};
   var r = await fetch(API + "/admin/settings", {method:"POST", headers: headers(), body: JSON.stringify({settings: settings})});
   if (!r.ok){ errMsg("ما تحفظش الوصف."); return; }
   okMsg("تحفظ وصف المتجر.");
 }
+
 async function doLogin(){
   var u = document.getElementById("loginUser").value.trim();
   var p = document.getElementById("loginPass").value;
@@ -200,17 +218,20 @@ async function doLogin(){
   sessionStorage.setItem("jeel-admin-key", key);
   enter();
 }
+
 function enter(){
   show(document.getElementById("loginCard"), false);
   show(document.getElementById("dash"), true);
   loadAll().catch(function(){ errMsg("تعذر تحميل المنتجات. عاودي المحاولة."); });
 }
+
 document.getElementById("loginBtn").onclick = doLogin;
 document.getElementById("loginPass").addEventListener("keydown", function(e){ if (e.key === "Enter") doLogin(); });
 document.getElementById("logoutBtn").onclick = function(){ sessionStorage.removeItem("jeel-admin-key"); key=""; location.reload(); };
 document.getElementById("saveProdBtn").onclick = saveProduct;
 document.getElementById("cancelEditBtn").onclick = resetForm;
 document.getElementById("saveSettingsBtn").onclick = saveSettings;
+
 if (key){ enter(); }
 </script>
 </body>
