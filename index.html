@@ -1300,7 +1300,7 @@
   function renderStore(){
     var html = "";
     PRODUCTS.forEach(function(p){
-      var img = heroImgSrc();
+      var img = p.image || heroImgSrc();
       html += '<article class="product-card">' +
         (img ? '<img src="' + img + '" alt="' + p.name + '" />' : "") +
         '<div class="pc-body">' +
@@ -1340,10 +1340,10 @@
     document.getElementById("pvName").textContent = p.name;
     document.getElementById("pvShort").textContent = p.short;
     document.getElementById("pvPrice").textContent = p.price;
-    var img = heroImgSrc();
+    var img = p.image || heroImgSrc();
     var pvImg = document.getElementById("pvImg");
     if (img) { pvImg.src = img; pvImg.style.display = ""; } else { pvImg.style.display = "none"; }
-    document.getElementById("pvImgCap").textContent = "صورة حقيقية من المجموعة";
+    document.getElementById("pvImgCap").textContent = p.image ? "" : "صورة حقيقية من المجموعة";
     var pts = document.getElementById("pvPoints");
     pts.innerHTML = "";
     p.points.forEach(function(pt){
