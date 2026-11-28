@@ -476,7 +476,7 @@
   <div class="shop-header-in">
     <a href="#/" class="brand">مكتبة الجيل الجديد</a>
     <nav>
-      <a href="#/">المتجر</a>
+      <a href="#/">الرئيسية</a>
       <a href="#demo">كيفاش تخدم</a>
       <a href="#faq-h">الأسئلة الشائعة</a>
     </nav>
@@ -524,7 +524,7 @@
   <!-- STORE -->
   <section id="store" aria-labelledby="store-h">
     <h2 id="store-h">متجر مكتبة الجيل الجديد</h2>
-    <p class="lead">كل المنتجات في بلاصة وحدة — اختر اللي يعجبك، أضف للسلة، واطلب. كل منتج عندو رابط خاص بيه تقدر تبعثو لصحابك.</p>
+    <p class="lead" id="storeLead">كل المنتجات في بلاصة وحدة — اختر اللي يعجبك، أضف للسلة، واطلب. كل منتج عندو رابط خاص بيه تقدر تبعثو لصحابك.</p>
     <div class="store-grid" id="storeGrid"></div>
   </section>
 
@@ -1136,6 +1136,34 @@
       ]
     }
   ];
+
+  /* ---------- Remote catalog: products + settings from the Worker ---------- */
+  var FLAGSHIP_PRODUCT = PRODUCTS[0];
+  (function loadRemoteCatalog(){
+    var base = (typeof ORDER_ENDPOINT === "string" ? ORDER_ENDPOINT : "").replace(/\/$/, "");
+    if (!base || base.indexOf("__WORKERS_SUBDOMAIN__") !== -1) return;
+    function getJSON(path){
+      return fetch(base + path).then(function(r){ if (!r.ok) throw new Error("http " + r.status); return r.json(); });
+    }
+    getJSON("/products").then(function(out){
+      if (!out || !out.ok || !Array.isArray(out.products) || !out.products.length) return;
+      var list = out.products.filter(function(p){ return p && p.id && p.name && Number(p.price) > 0; });
+      if (!list.length) return;
+      var hasMain = list.some(function(p){ return p.id === MAIN_ID; });
+      if (!hasMain) list.unshift(FLAGSHIP_PRODUCT);
+      PRODUCTS.length = 0;
+      list.forEach(function(p){ PRODUCTS.push(p); });
+      renderStore();
+      if (typeof productView !== "undefined" && productView && !productView.hidden) {
+        if (pvCurrent && productById(pvCurrent.id)) showProduct(pvCurrent.id); else showHome();
+      }
+    }).catch(function(){ /* keep built-in products */ });
+    getJSON("/settings").then(function(out){
+      if (!out || !out.ok || !out.settings) return;
+      if (out.settings.description) { var lead = document.getElementById("storeLead"); if (lead) lead.textContent = out.settings.description; }
+      if (out.settings.name) { var h = document.getElementById("store-h"); if (h) h.textContent = "متجر " + out.settings.name; }
+    }).catch(function(){});
+  })();
 
   var storeHome = document.getElementById("storeHome");
   var productView = document.getElementById("productView");
