@@ -467,6 +467,20 @@
   @media (prefers-color-scheme: dark){.desk-warn{background:#1c2f55}}
   .desk-warn.show{display:block}
 </style>
+<!-- Meta Pixel — Jeel Store (Events Manager). -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '4670188453239332');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=4670188453239332&ev=PageView&noscript=1"/></noscript>
 </head>
 <body>
 
@@ -1112,6 +1126,7 @@
     }).then(function(res){ return res.json(); }).then(function(out){
       if (!out || !out.ok) { throw new Error("send failed"); }
       form.style.display = "none";
+      if (window.fbq && typeof payload.total === "number") fbq('track', 'Purchase', {value: payload.total, currency: 'DZD'});
       var done = document.getElementById("orderSuccess");
       if (done) {
         done.classList.add("show");
@@ -1223,6 +1238,8 @@
   function addToCart(id, qty){
     cart[id] = (cart[id] || 0) + (qty || 1);
     saveCart(); updateCartUI();
+    var p = productById(id);
+    if (window.fbq && p) fbq('track', 'AddToCart', {content_ids: [p.id], content_name: p.name, value: p.price, currency: 'DZD'});
   }
   function setQty(id, qty){
     if (qty <= 0) delete cart[id]; else cart[id] = qty;
@@ -1335,6 +1352,7 @@
     var p = productById(id);
     if (!p) { showHome(); return; }
     pvCurrent = p; pvQty = 1;
+    if (window.fbq) fbq('track', 'ViewContent', {content_ids: [p.id], content_name: p.name, value: p.price, currency: 'DZD'});
     document.getElementById("pvQty").textContent = "1";
     document.getElementById("pvBadge").textContent = p.badge;
     document.getElementById("pvName").textContent = p.name;
