@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة تحكم المتجر — مكتبة الجيل الجديد</title>
+<style>
+  :root{--green:#1d7a3d;--green-d:#145c2d;--bg:#f4f6f2;--card:#fff;--ink:#1c241d;--soft:#5c6b5e;--line:#dde4db;--red:#b3261e;--amber:#8a6d00}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  h1{font-size:1.35rem;margin:0}
+  .sub{color:var(--soft);margin:4px 0 0;font-size:.95rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .card h2{font-size:1.1rem;margin:0 0 12px}
+  label{display:block;font-weight:700;margin:12px 0 4px;font-size:.95rem}
+  input,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:140px}
+  .btn{display:inline-block;border:0;border-radius:10px;padding:11px 18px;font:inherit;font-weight:800;cursor:pointer;background:var(--green);color:#fff}
+  .btn:hover{background:var(--green-d)}
+  .btn.ghost{background:#eef2ec;color:var(--ink)}
+  .btn.danger{background:#fbeae9;color:var(--red)}
+  .btn.small{padding:7px 12px;font-size:.9rem}
+  .msg{padding:10px 12px;border-radius:10px;margin:10px 0;display:none}
+  .msg.show{display:block}
+  .msg.err{background:#fbeae9;color:var(--red)}
+  .msg.ok{background:#e5f3e8;color:var(--green-d)}
+  .prod{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+  .prod b{font-size:1.02rem}
+  .prod .meta{color:var(--soft);font-size:.92rem;margin-top:4px}
+  .prod .actions{display:flex;gap:6px;flex-shrink:0}
+  .flag{font-size:.82rem;color:var(--amber);font-weight:700}
+  .hidden{display:none}
+  .hint{color:var(--soft);font-size:.9rem}
+  a{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>لوحة تحكم المتجر</h1>
+      <p class="sub">مكتبة الجيل الجديد — إضافة وحذف وتعديل المنتجات ووصف المتجر</p>
+    </div>
+    <a href="/">← المتجر</a>
+  </header>
+  <div class="card" id="loginCard">
+    <h2>تسجيل الدخول</h2>
+    <label>اسم المستخدم</label>
+    <input id="loginUser" value="admin" autocomplete="username">
+    <label>كلمة السر</label>
+    <input id="loginPass" type="password" autocomplete="current-password">
+    <div class="msg err" id="loginErr">بيانات الدخول غير صحيحة.</div>
+    <div style="margin-top:14px"><button class="btn" id="loginBtn" type="button">دخول</button></div>
+  </div>
+  <div id="dash" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <b>مرحبا، أنت مسجلة كمديرة للمتجر</b>
+      <button class="btn ghost small" id="logoutBtn" type="button">خروج</button>
+    </div>
+    <div class="msg ok" id="okMsg"></div>
+    <div class="msg err" id="errMsg"></div>
+    <div class="card">
+      <h2>وصف المتجر</h2>
+      <label>اسم المتجر</label>
+      <input id="setName">
+      <label>وصف المتجر (يظهر في الرئيسية فوق المنتجات)</label>
+      <textarea id="setDesc"></textarea>
+      <div style="margin-top:14px"><button class="btn" id="saveSettingsBtn" type="button">حفظ الوصف</button></div>
+    </div>
+    <div class="card">
+      <h2>المنتجات</h2>
+      <div id="prodList"><p class="hint">جاري التحميل…</p></div>
+    </div>
+    <div class="card">
+      <h2 id="formTitle">إضافة منتج جديد</h2>
+      <input type="hidden" id="fId">
+      <label>اسم المنتج</label>
+      <input id="fName" placeholder="مثال: بطاقات الفيزياء للبكالوريا">
+      <div class="row">
+        <div><label>السعر (دج)</label><input id="fPrice" type="number" min="1" placeholder="2000"></div>
+        <div><label>الشارة (مثال: بأرخص سعر)</label><input id="fBadge" placeholder="بأرخص سعر"></div>
+      </div>
+      <label>وصف قصير</label>
+      <textarea id="fShort" placeholder="سطر واحد يشرح المنتج"></textarea>
+      <label>النقاط (سطر لكل نقطة)</label>
+      <textarea id="fPoints" placeholder="أكثر من 500 بطاقة ورقية&#10;الدفع عند الاستلام"></textarea>
+      <p class="hint" id="flagNote" style="display:none">هذا هو المنتج الرئيسي للمتجر (البطاقات) — تقدر تعدل سعره ووصفه، بصح ما يتحدفش.</p>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="btn" id="saveProdBtn" type="button">حفظ المنتج</button>
+        <button class="btn ghost" id="cancelEditBtn" type="button">إلغاء التعديل</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var API = "https://jeel-orders.apricitya4.workers.dev";
+var FLAGSHIP_ID = "flashcards-bac-complet";
+var key = sessionStorage.getItem("jeel-admin-key") || "";
+function show(el, on){ el.classList.toggle("hidden", !on); }
+function okMsg(t){ var m=document.getElementById("okMsg"); m.textContent=t; m.classList.add("show"); setTimeout(function(){m.classList.remove("show")},4000); }
+function errMsg(t){ var m=document.getElementById("errMsg"); m.textContent=t; m.classList.add("show"); }
+function headers(){ return {"Content-Type":"application/json","X-Admin-Key":key}; }
+function slug(s){
+  s = (s||"").trim().replace(/\s+/g,"-");
+  return "p-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,6);
+}
+async function loadAll(){
+  var r = await fetch(API + "/admin/products", {headers: headers()});
+  if (!r.ok) throw new Error("products");
+  var d = await r.json();
+  renderProducts(d.products || []);
+  var r2 = await fetch(API + "/settings");
+  if (r2.ok){ var s = await r2.json(); if (s.settings){ document.getElementById("setName").value = s.settings.name || ""; document.getElementById("setDesc").value = s.settings.description || ""; } }
+}
+function renderProducts(list){
+  var box = document.getElementById("prodList");
+  box.innerHTML = "";
+  if (!list.length){ box.innerHTML = '<p class="hint">لا توجد منتجات بعد.</p>'; return; }
+  list.forEach(function(p){
+    var div = document.createElement("div");
+    div.className = "prod";
+    var isFlag = p.id === FLAGSHIP_ID;
+    div.innerHTML = "<div><b></b>" + (isFlag ? ' <span class="flag">المنتج الرئيسي</span>' : "") +
+      "<div class='meta'></div></div><div class='actions'></div>";
+    div.querySelector("b").textContent = p.name;
+    div.querySelector(".meta").textContent = (p.price || 0) + " دج" + (p.badge ? " — " + p.badge : "") + (p.short ? " — " + p.short : "");
+    var act = div.querySelector(".actions");
+    var eb = document.createElement("button");
+    eb.className = "btn ghost small"; eb.type = "button"; eb.textContent = "تعديل";
+    eb.onclick = function(){ editProduct(p); };
+    act.appendChild(eb);
+    if (!isFlag){
+      var db = document.createElement("button");
+      db.className = "btn danger small"; db.type = "button"; db.textContent = "حذف";
+      db.onclick = function(){ if (confirm("تحذفي هذا المنتج؟ " + p.name)) deleteProduct(p.id); };
+      act.appendChild(db);
+    }
+    box.appendChild(div);
+  });
+}
+function editProduct(p){
+  document.getElementById("formTitle").textContent = "تعديل منتج";
+  document.getElementById("fId").value = p.id;
+  document.getElementById("fName").value = p.name || "";
+  document.getElementById("fPrice").value = p.price || "";
+  document.getElementById("fBadge").value = p.badge || "";
+  document.getElementById("fShort").value = p.short || "";
+  document.getElementById("fPoints").value = (p.points || []).join("\n");
+  document.getElementById("flagNote").style.display = p.id === FLAGSHIP_ID ? "" : "none";
+  document.getElementById("formTitle").scrollIntoView({behavior:"smooth", block:"center"});
+}
+function resetForm(){
+  document.getElementById("formTitle").textContent = "إضافة منتج جديد";
+  ["fId","fName","fPrice","fBadge","fShort","fPoints"].forEach(function(id){ document.getElementById(id).value = ""; });
+  document.getElementById("flagNote").style.display = "none";
+}
+async function saveProduct(){
+  var name = document.getElementById("fName").value.trim();
+  var price = Number(document.getElementById("fPrice").value);
+  if (!name || !(price > 0)){ errMsg("اكتبي اسم المنتج وسعر صحيح."); return; }
+  var id = document.getElementById("fId").value.trim() || slug(name);
+  var product = {
+    id: id,
+    name: name,
+    short: document.getElementById("fShort").value.trim(),
+    price: price,
+    badge: document.getElementById("fBadge").value.trim(),
+    points: document.getElementById("fPoints").value.split("\n").map(function(x){return x.trim();}).filter(Boolean)
+  };
+  var r = await fetch(API + "/admin/products", {method:"POST", headers: headers(), body: JSON.stringify({product: product})});
+  if (!r.ok){ errMsg("ما تحفظش المنتج. عاودي المحاولة."); return; }
+  var d = await r.json();
+  renderProducts(d.products || []);
+  resetForm();
+  okMsg("تحفظ المنتج وظهر في المتجر.");
+}
+async function deleteProduct(id){
+  var r = await fetch(API + "/admin/products?id=" + encodeURIComponent(id), {method:"DELETE", headers: headers()});
+  if (!r.ok){ errMsg("ما تحذفش المنتج."); return; }
+  var d = await r.json();
+  renderProducts(d.products || []);
+  okMsg("تحذف المنتج.");
+}
+async function saveSettings(){
+  var settings = {name: document.getElementById("setName").value.trim(), description: document.getElementById("setDesc").value.trim()};
+  var r = await fetch(API + "/admin/settings", {method:"POST", headers: headers(), body: JSON.stringify({settings: settings})});
+  if (!r.ok){ errMsg("ما تحفظش الوصف."); return; }
+  okMsg("تحفظ وصف المتجر.");
+}
+async function doLogin(){
+  var u = document.getElementById("loginUser").value.trim();
+  var p = document.getElementById("loginPass").value;
+  var r = await fetch(API + "/admin/login", {method:"POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({username: u, password: p})});
+  if (!r.ok){ document.getElementById("loginErr").style.display = "block"; return; }
+  key = p;
+  sessionStorage.setItem("jeel-admin-key", key);
+  enter();
+}
+function enter(){
+  show(document.getElementById("loginCard"), false);
+  show(document.getElementById("dash"), true);
+  loadAll().catch(function(){ errMsg("تعذر تحميل المنتجات. عاودي المحاولة."); });
+}
+document.getElementById("loginBtn").onclick = doLogin;
+document.getElementById("loginPass").addEventListener("keydown", function(e){ if (e.key === "Enter") doLogin(); });
+document.getElementById("logoutBtn").onclick = function(){ sessionStorage.removeItem("jeel-admin-key"); key=""; location.reload(); };
+document.getElementById("saveProdBtn").onclick = saveProduct;
+document.getElementById("cancelEditBtn").onclick = resetForm;
+document.getElementById("saveSettingsBtn").onclick = saveSettings;
+if (key){ enter(); }
+</script>
+</body>
+</html>
