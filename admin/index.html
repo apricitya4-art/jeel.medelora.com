@@ -36,6 +36,8 @@
   .hidden{display:none}
   .hint{color:var(--soft);font-size:.9rem}
   a{color:var(--green)} .brand-logo{width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0}
+  .thumb{width:96px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex-shrink:0}
+  #imgPreview{max-width:100%;max-height:220px;border-radius:10px;border:1px solid var(--line);display:none;margin-top:8px}
 </style>
 </head>
 <body>
@@ -94,6 +96,11 @@
       </div>
       <label>وصف قصير</label>
       <textarea id="fShort" placeholder="سطر واحد يشرح المنتج"></textarea>
+      <label>صورة المنتج</label>
+      <input type="file" id="fImageFile" accept="image/*">
+      <p class="hint">صورة من هاتفك أو حاسوبك — تتصغر تلقائيا باش ما تثقلش المتجر. إذا ما اخترتيش صورة، تبقى تبان صورة البطاقات العادية.</p>
+      <img id="imgPreview" alt="معاينة صورة المنتج">
+      <div style="margin-top:8px"><button class="btn ghost small" id="removeImgBtn" type="button" style="display:none">حذف الصورة</button></div>
       <label>النقاط (سطر لكل نقطة)</label>
       <textarea id="fPoints" placeholder="أكثر من 500 بطاقة ورقية&#10;الدفع عند الاستلام"></textarea>
       <p class="hint" id="flagNote" style="display:none">هذا هو المنتج الرئيسي للمتجر (البطاقات) — تقدر تعدل سعره ووصفه، بصح ما يتحدفش.</p>
@@ -109,6 +116,7 @@
 var API = "https://jeel-orders.apricitya4.workers.dev";
 var FLAGSHIP_ID = "flashcards-bac-complet";
 var key = sessionStorage.getItem("jeel-admin-key") || "";
+var currentImage = "";
 
 function show(el, on){ el.classList.toggle("hidden", !on); }
 function okMsg(t){ var m=document.getElementById("okMsg"); m.textContent=t; m.classList.add("show"); setTimeout(function(){m.classList.remove("show")},4000); }
@@ -136,6 +144,7 @@ function renderProducts(list){
   list.forEach(function(p){
     var div = document.createElement("div");
     div.className = "prod";
+    if (p.image){ var th = document.createElement("img"); th.className = "thumb"; th.src = p.image; th.alt = ""; div.appendChild(th); }
     var isFlag = p.id === FLAGSHIP_ID;
     div.innerHTML = "<div><b></b>" + (isFlag ? ' <span class="flag">المنتج الرئيسي</span>' : "") +
       "<div class='meta'></div></div><div class='actions'></div>";
@@ -164,6 +173,11 @@ function editProduct(p){
   document.getElementById("fBadge").value = p.badge || "";
   document.getElementById("fShort").value = p.short || "";
   document.getElementById("fPoints").value = (p.points || []).join("\n");
+  currentImage = p.image || "";
+  var pv = document.getElementById("imgPreview");
+  if (currentImage){ pv.src = currentImage; pv.style.display = "block"; document.getElementById("removeImgBtn").style.display = ""; }
+  else { pv.removeAttribute("src"); pv.style.display = "none"; document.getElementById("removeImgBtn").style.display = "none"; }
+  document.getElementById("fImageFile").value = "";
   document.getElementById("flagNote").style.display = p.id === FLAGSHIP_ID ? "" : "none";
   document.getElementById("formTitle").scrollIntoView({behavior:"smooth", block:"center"});
 }
@@ -171,7 +185,36 @@ function editProduct(p){
 function resetForm(){
   document.getElementById("formTitle").textContent = "إضافة منتج جديد";
   ["fId","fName","fPrice","fBadge","fShort","fPoints"].forEach(function(id){ document.getElementById(id).value = ""; });
+  currentImage = "";
+  var pv = document.getElementById("imgPreview");
+  pv.removeAttribute("src"); pv.style.display = "none";
+  document.getElementById("removeImgBtn").style.display = "none";
+  document.getElementById("fImageFile").value = "";
   document.getElementById("flagNote").style.display = "none";
+}
+
+function downscaleImage(file, cb){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      var w = img.width, h = img.height;
+      function render(maxW, q){
+        var s = Math.min(1, maxW / Math.max(w, h));
+        var cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(w * s));
+        cv.height = Math.max(1, Math.round(h * s));
+        cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+        return cv.toDataURL("image/jpeg", q);
+      }
+      var url = render(1200, 0.82);
+      if (url.length > 550000) url = render(800, 0.75);
+      cb(url);
+    };
+    img.onerror = function(){ errMsg("ما قدرتش نقرا الصورة. جرّبي صورة أخرى."); };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 async function saveProduct(){
@@ -185,6 +228,7 @@ async function saveProduct(){
     short: document.getElementById("fShort").value.trim(),
     price: price,
     badge: document.getElementById("fBadge").value.trim(),
+    image: currentImage,
     points: document.getElementById("fPoints").value.split("\n").map(function(x){return x.trim();}).filter(Boolean)
   };
   var r = await fetch(API + "/admin/products", {method:"POST", headers: headers(), body: JSON.stringify({product: product})});
@@ -227,6 +271,24 @@ function enter(){
 }
 
 document.getElementById("loginBtn").onclick = doLogin;
+document.getElementById("fImageFile").addEventListener("change", function(){
+  var f = this.files && this.files[0];
+  if (!f) return;
+  if (f.size > 8 * 1024 * 1024){ errMsg("الصورة كبيرة بزاف (أكثر من 8 ميغا). اختاري صورة أصغر."); this.value = ""; return; }
+  downscaleImage(f, function(url){
+    currentImage = url;
+    var pv = document.getElementById("imgPreview");
+    pv.src = url; pv.style.display = "block";
+    document.getElementById("removeImgBtn").style.display = "";
+  });
+});
+document.getElementById("removeImgBtn").onclick = function(){
+  currentImage = "";
+  var pv = document.getElementById("imgPreview");
+  pv.removeAttribute("src"); pv.style.display = "none";
+  document.getElementById("fImageFile").value = "";
+  this.style.display = "none";
+};
 document.getElementById("loginPass").addEventListener("keydown", function(e){ if (e.key === "Enter") doLogin(); });
 document.getElementById("logoutBtn").onclick = function(){ sessionStorage.removeItem("jeel-admin-key"); key=""; location.reload(); };
 document.getElementById("saveProdBtn").onclick = saveProduct;
